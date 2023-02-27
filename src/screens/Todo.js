@@ -5,18 +5,30 @@ import {
   SafeAreaView,
   Modal,
   ActivityIndicator,
+  FlatList,
 } from "react-native";
 import React, { useState } from "react";
 import { styles } from "../styles/styles";
 import { auth, db } from "../firebase/firebase";
-import { addDoc, collection, query, where, getDocs } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
 import { signOut, sendEmailVerification } from "firebase/auth";
 import AddToDoModal from "../components/AddToDoModal";
+import BouncyCheckbox from "react-native-bouncy-checkbox";
+import InlineTextButton from "../components/InlineTextButton";
 
 const Todo = ({ navigation }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [toDos, setToDos] = useState([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const logout = () => {
     signOut(auth).then(() => {
@@ -24,24 +36,76 @@ const Todo = ({ navigation }) => {
     });
   };
 
-  const loadTodo = async () => {
+  const loadTodoList = async () => {
     const q = query(
       collection(db, "todos"),
       where("userId", "==", auth.currentUser.uid)
     );
-
     const querySnapshot = await getDocs(q);
-    const toDos = [];
+    let toDos = [];
     querySnapshot.forEach((doc) => {
-      toDos.push(doc.data());
-      // console.log(doc.id, " => ", doc.data());
+      const toDo = doc.data();
+      toDo.id = doc.id;
+      toDos.push(toDo);
     });
-    console.log(toDos);
     setToDos(toDos);
     setIsLoading(false);
+    setIsRefreshing(false);
+    // console.log(toDos);
   };
 
-  const showTodoLists = () => {};
+  if (isLoading) {
+    loadTodoList();
+  }
+
+  const checkTodoItem = (item, isChecked) => {};
+
+  const deleteTodo = async (todoId) => {
+    await deleteDoc(doc(db, "todos", todoId));
+    const updateTodos = [...toDos].filter((item) => item.id !== todoId);
+    setToDos(updateTodos);
+  };
+
+  const renderTodoItem = ({ item }) => {
+    return (
+      <View style={styles.rowContainer}>
+        <BouncyCheckbox
+          isChecked={item.complated}
+          size={25}
+          fillColor="#258ea6"
+          unfillColor="#ffffff"
+          text={item.text}
+          iconStyle={{ borderColor: "#258ea6" }}
+          onPress={(isChecked) => {
+            checkTodoItem(item, isChecked);
+          }}
+        />
+        {/* <View style={styles.rightAligned}> */}
+        <InlineTextButton
+          text="Delete"
+          color="#258ea6"
+          onPress={() => deleteTodo(item.id)}
+        />
+        {/* </View> */}
+      </View>
+    );
+  };
+
+  const showTodoLists = () => {
+    return (
+      <FlatList
+        style={styles.list}
+        refreshing={isRefreshing}
+        onRefresh={() => {
+          loadTodoList();
+          setIsRefreshing(true);
+        }}
+        data={toDos}
+        renderItem={renderTodoItem}
+        keyExtractor={(item) => item.id}
+      />
+    );
+  };
 
   const showContent = () => {
     return (
@@ -69,12 +133,17 @@ const Todo = ({ navigation }) => {
   };
 
   const addTODO = async (todo) => {
-    const docRef = await addDoc(collection(db, "todos"), {
+    const toDoSave = {
       text: todo,
       completed: false,
-    });
+      userId: auth.currentUser.uid,
+    };
+    const docRef = await addDoc(collection(db, "todos"), toDoSave);
 
-    console.log(docRef);
+    toDoSave.id = docRef.id;
+    const updatedTodos = [...toDos];
+    updatedTodos.push(toDoSave);
+    setToDos(updatedTodos);
   };
 
   return (

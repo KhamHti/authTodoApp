@@ -12,6 +12,7 @@ const AddToDoModal = (props) => {
         placeholder="ToDo"
         value={todo}
         onChangeText={setTodo}
+        autoFocus={true}
       />
       <View style={styles.bottomContainer}>
         <Button title="Cancel" onPress={props.onClose} />

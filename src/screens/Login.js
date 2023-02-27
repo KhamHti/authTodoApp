@@ -23,6 +23,12 @@ const Login = ({ navigation }) => {
 
   if (auth.currentUser) {
     navigation.navigate("ToDo");
+  } else {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        navigation.navigate("ToDo");
+      }
+    });
   }
 
   const login = () => {

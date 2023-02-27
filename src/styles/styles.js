@@ -13,6 +13,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 16,
+    // backgroundColor: "yellow",
   },
   header: {
     fontSize: 26,
@@ -48,6 +49,15 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 15,
   },
+  rowContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    // alignSelf: "stretch",
+    marginVertical: 4,
+    marginHorizontal: 8,
+    flex: 1,
+  },
   bottomContainer: {
     flexDirection: "row",
     justifyContent: "center",
@@ -61,6 +71,21 @@ const styles = StyleSheet.create({
   },
   button: {
     paddingBottom: 20,
+  },
+  inlineTextButton: {
+    color: "#87F1FF",
+  },
+  pressedInlineTextButton: {
+    color: "#87F1FF",
+    opacity: 0.6,
+  },
+  rightAligned: {
+    justifyContent: "flex-end",
+    // right: 10,
+  },
+  list: {
+    alignSelf: "stretch",
+    // backgroundColor: "red",
   },
 });
 
